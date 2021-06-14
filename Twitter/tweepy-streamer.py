@@ -7,6 +7,7 @@ from tweepy import Stream
 import credentials
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 # # # # TWITTER CLIENT # # # #
 class TwitterClient():
@@ -91,12 +92,54 @@ class TweetAnalyzer():
     '''
     Functionality for analyzing and categorizing content from tweets
     '''
-    pass
+    def tweets_to_data_frame(self, tweets):
+        df = pd.DataFrame(data=[tweet.text for tweet in tweets], columns=['tweets'])
+        df['id'] = np.array([tweet.id for tweet in tweets])
+        df['len'] = np.array([len(tweet.text) for tweet in tweets])
+        df['date'] = np.array([tweet.created_at for tweet in tweets])
+        df['source'] = np.array([tweet.source for tweet in tweets])
+        df['n_likes'] = np.array([tweet.favorite_count for tweet in tweets])
+        df['n_retweets'] = np.array([tweet.retweet_count for tweet in tweets])
+
+        return df
 
 if __name__=="__main__":
 
     twitter_client = TwitterClient()
-    api = 
+    tweet_analyzer = TweetAnalyzer()
+    api = twitter_client.get_twitter_client_api()
+
+    tweets = api.user_timeline(screen_name="SamHarrisOrg", count=1000)
+
+    # print(dir(tweets[0])) # prints methods we can ask of the 'tweets' api call
+    # print(tweets[0].id) # prints id of tweet
+    # print(tweets[0].retweet_count)
+
+    df = tweet_analyzer.tweets_to_data_frame(tweets)
+    # print(df.head(10))
+
+    # Get average length over all tweets
+    # print(np.mean(df['len']))
+    # Get number of likes for most liked tweet
+    # print(np.max(df['n_likes']))
+    # Get number of retweets for most retweeted tweet
+    # print(np.max(df['n_retweets']))
+
+    # Time Series
+    # time_likes = pd.Series(data=df['n_likes'].values, index=df['date'])
+    # time_likes.plot(figsize=(16,8), color='b')
+    # plt.show()
+
+    # time_retweets = pd.Series(data=df['n_retweets'].values, index=df['date'])
+    # time_retweets.plot(figsize=(16,8), color='b')
+    # plt.show()
+
+    time_likes = pd.Series(data=df['n_likes'].values, index=df['date'])
+    time_likes.plot(figsize=(16,8), label="Likes", legend=True, color='orange')
+
+    time_retweets = pd.Series(data=df['n_retweets'].values, index=df['date'])
+    time_retweets.plot(figsize=(16,8), label='Retweets', legend=True, color='b')
+    plt.show()
 
 
     # hashtag_list = ['joe biden', 'ben shapiro', 'sam harris']
